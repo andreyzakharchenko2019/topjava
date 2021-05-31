@@ -3,11 +3,11 @@ package ru.javawebinar.topjava.util;
 import ru.javawebinar.topjava.model.UserMeal;
 import ru.javawebinar.topjava.model.UserMealWithExcess;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class UserMealsUtil {
     public static void main(String[] args) {
@@ -28,12 +28,35 @@ public class UserMealsUtil {
     }
 
     public static List<UserMealWithExcess> filteredByCycles(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        // TODO return filtered list with excess. Implement by cycles
-        return null;
+        List<UserMealWithExcess> filteredMeals = new ArrayList<>();
+        Map<LocalDate, Integer> caloriesPerDayMap = new HashMap<>();
+        for (UserMeal userMeal : meals) {
+            LocalDate currentDateLocalTime = userMeal.getDateTime().toLocalDate();
+            try {
+                caloriesPerDayMap.put(currentDateLocalTime, caloriesPerDayMap.get(currentDateLocalTime) + userMeal.getCalories());
+            } catch (NullPointerException e) {
+                caloriesPerDayMap.put(currentDateLocalTime, userMeal.getCalories());
+            }
+        }
+
+        for (UserMeal userMeal : meals) {
+            LocalDate currentDateLocalTime = userMeal.getDateTime().toLocalDate();
+            if (TimeUtil.isBetweenHalfOpen(userMeal.getDateTime().toLocalTime(), startTime, endTime)) {
+                filteredMeals.add(new UserMealWithExcess(userMeal.getDateTime(), userMeal.getDescription(), userMeal.getCalories(),
+                        howManyCalories(caloriesPerDayMap.get(currentDateLocalTime), caloriesPerDay)));
+            }
+        }
+
+
+        return filteredMeals;
     }
 
     public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
         // TODO Implement by streams
         return null;
+    }
+
+    private static boolean howManyCalories(int caloriesPerDay, int normalCaloriesPerDay) {
+        return caloriesPerDay > normalCaloriesPerDay;
     }
 }
